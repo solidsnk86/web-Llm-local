@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="module" defer>
+      import { MLCEngine } from "./model.js";
+
+      const model = "Llama-3-8B-Instruct-q4f32_1-MLC-1k";
+
+      const engine = new MLCEngine();
+      const small = document.querySelector("small");
+
+      engine.setInitProgressCallback(console.log);
+      await engine.reload(model);
+
+      let messages = [];
+
+      const $ = (el) => document.querySelector(el);
+
+      const $form = $("form");
+      const $template = $("#message-template");
+      const $input = $("input");
+      const $messages = $("ul");
+      const $container = $("pre");
+      const $button = $("button");
+      const $info = $("small");
+
+      function addMessage(text, sender) {
+        const clonedTemplate = $template.content.cloneNode(true);
+        const $newMessage = clonedTemplate.querySelector(".message");
+
+        const $who = $newMessage.querySelector("span");
+        const $text = $newMessage.querySelector("p");
+
+        $text.textContent = text;
+        $who.textContent = sender === "bot" ? "GPT" : "Tú"; 
+        $newMessage.classList.add(sender)
+
+        $messages.appendChild($newMessage);
+
+        $container.scrollTop = $container.scrollHeight;
+        return $text;
+      }
+
+      $form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const messageText = $input.value.trim();
+
+        if (messageText !== "") {
+          $input.value = "";
+        }
+
+        addMessage(messageText, "user");
+
+        const userMessage = {
+          role: "user",
+          content: messageText,
+        };
+
+        messages.push(userMessage);
+
+        const chunks = await engine.chat.completions.create({
+          messages,
+          stream: true,
+        });
+
+        let reply = "";
+        $button.setAttribute("disabled", true);
+
+        const $botMessage = addMessage("", "bot");
+
+        for await (const chunk of chunks) {
+          const choice = chunk.choices[0];
+          const content = choice?.delta?.content ?? "";
+          reply += content;
+          $botMessage.textContent = reply;
+        }
+
+        $button.removeAttribute("disabled");
+
+        messages.push({
+          role: "assistant",
+          content: reply,
+        });
+
+        $container.scrollTop = $container.scrollHeight;
+      }
+      )   
+    </script>
+  </head>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+        sans-serif;
+      background: #050505;
+      display: grid;
+      height: 100dvh;
+      place-content: center;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ddd;
+    }
+
+    pre {
+      width: 400px;
+      max-width: 100%;
+      height: 70vh;
+      justify-content: center;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 8px;
+      margin: 0 auto 16px;
+      color: #eee;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    code {
+      text-wrap: balance;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      list-style: none;
+      padding: 0;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      margin: 4px 0;
+      padding: 4px 8px;
+
+      span {
+        width: 36px;
+        height: 36px;
+        background: #eee;
+        font-size: 12px;
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 999999px;
+      }
+
+      p {
+        border-radius: 4px;
+        padding: 4px 8px;
+        margin-top: 4px;
+      }
+
+      &.user {
+        align-self: flex-end;
+        align-items: flex-end;
+        span,
+        p {
+          background: rgba(87, 132, 210, 0.844);
+          color: #fff;
+        }
+      }
+
+      &.bot {
+        align-self: flex-start;
+        span,
+        p {
+          background: #d97757;
+        }
+      }
+    }
+
+    form {
+      display: flex;
+      width: 420px;
+      margin: 0 auto;
+
+      input {
+        border-radius: 6px;
+        flex-grow: 1;
+        border: 0;
+        padding: 8px;
+        margin-right: 8px;
+        background-color: #222;
+        border: 1px solid #333;
+        color: #ccc;
+
+        &:focus {
+          outline: 2px solid #d97757;
+        }
+      }
+
+      button {
+        background: #999;
+        border: 0;
+        color: #333;
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 4px;
+        transition: background 0.3s ease;
+
+        &[disabled] {
+          background: #222;
+          opacity: 0.6;
+          pointer-events: none;
+        }
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+    }
+
+    .preloader {
+      position: relative;
+      top: 50%;
+      left: 50%;
+      width: 45px;
+      height: 45px;
+      border-right: 4px solid royalblue;
+    }
+
+    small {
+      font-size: 10px;
+      color: #f0f0f0;
+      position: sticky;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      margin: auto;
+      width: 400px;
+    }
+  </style>
+  <body>
+    <section>
+      <header>
+        <h1>Llama AI 3.8b LLM</h1>
+      </header>
+      <pre style="text-wrap: pretty">
+        <ul>
+          <small>&nbsp;</small>
+        </ul>
+      </pre>
+  
+      <form>
+        <input placeholder="Escribe tu mensaje aquí..." />
+        <button>Enviar</button>
+      </form>
+  
+      <template id="message-template">
+        <li class="message">
+          <span></span>
+          <p></p>
+        </li>
+      </template>
+  </body>
+</html>
