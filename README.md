@@ -1,4 +1,4 @@
-# Modelo de CHAT GPT gratuito, privado y 100% local
+# Modelo de IA gratuito, privado y 100% local
 
 ### WebLLM: Inferencia de Modelos de Lenguaje en el Navegador
 
