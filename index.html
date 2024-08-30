@@ -10,13 +10,7 @@
       const model = "Llama-3-8B-Instruct-q4f32_1-MLC-1k";
 
       const engine = new MLCEngine();
-      const small = document.querySelector("small");
-
-      engine.setInitProgressCallback(console.log);
-      await engine.reload(model);
-
-      let messages = [];
-
+      const $small = document.querySelector("small");
       const $ = (el) => document.querySelector(el);
 
       const $form = $("form");
@@ -25,7 +19,21 @@
       const $messages = $("ul");
       const $container = $("pre");
       const $button = $("button");
-      const $info = $("small");
+      const $info = $("small"); 
+
+      let progressText = "";
+      engine.setInitProgressCallback((progress) => {
+        progressText = `Progress: ${progress.text}`;
+        $small.textContent = progressText.replace(": 0MB loaded. 0% completed, 0 secs elapsed.", "");
+
+        if (progress.progress === 1) {
+          $button.removeAttribute("disabled");
+           $small.textContent = `Modelo ${model} cargado correctamente.`
+        }
+      })
+      await engine.reload(model);
+
+      let messages = [];
 
       function addMessage(text, sender) {
         const clonedTemplate = $template.content.cloneNode(true);
@@ -35,7 +43,7 @@
         const $text = $newMessage.querySelector("p");
 
         $text.textContent = text;
-        $who.textContent = sender === "bot" ? "GPT" : "Tú"; 
+        $who.textContent = sender === "bot" ? "🤖" : "🧔"; 
         $newMessage.classList.add(sender)
 
         $messages.appendChild($newMessage);
@@ -108,6 +116,7 @@
     }
 
     pre {
+      position: relative;
       width: 400px;
       max-width: 100%;
       height: 70vh;
@@ -132,6 +141,12 @@
       flex-direction: column;
       list-style: none;
       padding: 0;
+
+      & small {
+        position: absolute;
+        top: 8px;
+        left: 4px;
+      }
     }
 
     .message {
@@ -210,6 +225,7 @@
           background: #222;
           opacity: 0.6;
           pointer-events: none;
+          cursor: not-allowed;
         }
 
         &:hover {
@@ -245,13 +261,13 @@
       </header>
       <pre style="text-wrap: pretty">
         <ul>
-          <small>&nbsp;</small>
+          <small style="color: lightgreen;">&nbsp;</small>
         </ul>
       </pre>
   
       <form>
         <input placeholder="Escribe tu mensaje aquí..." />
-        <button>Enviar</button>
+        <button disabled>Enviar</button>
       </form>
   
       <template id="message-template">
