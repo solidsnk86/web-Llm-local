@@ -27,8 +27,7 @@ engine.setInitProgressCallback((progress) => {
 
   if (progress.progress === 1) {
     $button.removeAttribute("disabled");
-    $info.textContent = `Modelo ${model} cargado correctamente.`;
-    $messages.textContent = "¡Hola! ¿En que puedo ayudarte hoy?" 
+    $info.textContent = `Modelo ${model} cargado correctamente.`; 
   }
   
 });
@@ -58,9 +57,7 @@ function addPre(content) {
   pre.classList.add("code");
 
   if (content.startsWith("```")) {
-    pre.textContent = content.replace(/```/g, "").trim();
-    $messages.appendChild(pre);
-    addMessage(content, "bot")
+    addMessage($messages.appendChild(pre), "bot")
   }
 }
 
@@ -97,7 +94,10 @@ $form.addEventListener("submit", async (e) => {
     const content = choice?.delta?.content ?? "";
     reply += content;
     $botMessage.textContent = reply;
+
+    addPre(content)
   }
+
 
   $button.removeAttribute("disabled");
 
