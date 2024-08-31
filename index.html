@@ -14,7 +14,7 @@ const $ = (el) => document.querySelector(el);
 
 const $form = $("form");
 const $template = $("#message-template");
-const $input = $("input");
+const $input = $("textarea");
 const $messages = $("ul");
 const $container = $("pre");
 const $button = $("button");
@@ -219,7 +219,7 @@ $form.addEventListener("submit", async (e) => {
       width: 420px;
       margin: 0 auto;
 
-      input {
+      textarea {
         border-radius: 6px;
         flex-grow: 1;
         border: 0;
@@ -228,6 +228,7 @@ $form.addEventListener("submit", async (e) => {
         background-color: #222;
         border: 1px solid #333;
         color: #ccc;
+        resize: none;
 
         &:focus {
           outline: 2px solid #d97757;
@@ -288,7 +289,7 @@ $form.addEventListener("submit", async (e) => {
       </pre>
   
       <form>
-        <input placeholder="Escribe tu mensaje aquí..." />
+        <textarea placeholder="Escribe tu mensaje aquí..."></textarea>
         <button disabled>Enviar</button>
       </form>
   

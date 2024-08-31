@@ -71,6 +71,3 @@ También en la consola de desarrollo del navegador pueden ejecutar el siguiente 
 ```javascript
 navigator.gpu.requestAdapter();
 ```
-
-<p>Si logran ver algo como ésto quiere decir que lo soporta:</p>
-<img src="gpu-request-adapter.png" width="60%" height="50%" alt="Imagen de la consola de desarrollo del navegador.">
