@@ -97,9 +97,6 @@ $form.addEventListener("submit", async (e) => {
     const content = choice?.delta?.content ?? "";
     reply += content;
     $botMessage.textContent = reply;
-
-
-    addPre(content);
   }
 
   $button.removeAttribute("disabled");
