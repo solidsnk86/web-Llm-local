@@ -5,110 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IA 100% Local Gratuita y Privada</title>
     <script type="module" defer>
-      import { MLCEngine } from "./model.js";
+      // import { MLCEngine } from "./model.js";
 
-const model = "Llama-3-8B-Instruct-q4f32_1-MLC-1k";
+      const model = "Llama-3-8B-Instruct-q4f32_1-MLC-1k";
 
-const engine = new MLCEngine();
-const $ = (el) => document.querySelector(el);
+      const engine = new MLCEngine();
+      const $ = (el) => document.querySelector(el);
 
-const $form = $("form");
-const $template = $("#message-template");
-const $input = $("textarea");
-const $messages = $("ul");
-const $container = $("pre");
-const $button = $("button");
-const $info = $("small");
+      const $form = $("form");
+      const $template = $("#message-template");
+      const $input = $("textarea");
+      const $messages = $("ul");
+      const $container = $("pre");
+      const $button = $("button");
+      const $info = $("small");
 
-let progressText = "";
-engine.setInitProgressCallback((progress) => {
-  progressText = `Progress: ${progress.text}`;
-  $info.textContent = progressText.replace(": 0MB loaded. 0% completed, 0 secs elapsed.", "");
+      let progressText = "";
+      engine.setInitProgressCallback((progress) => {
+        progressText = `Progress: ${progress.text}`;
+        $info.textContent = progressText.replace("]: 0MB loaded. 0% completed, 0 secs elapsed.", "-packages]");
 
-  if (progress.progress === 1) {
-    $button.removeAttribute("disabled");
-    $info.textContent = `Modelo ${model} cargado correctamente.`; 
-  }
-  
-});
-await engine.reload(model);
+        if (progress.progress === 1) {
+          $button.removeAttribute("disabled");
+          $info.textContent = `Modelo ${model} cargado correctamente.`; 
+          setTimeout(() => {
+            $info.textContent = ""
+          }, 9000)
+          return clearTimeout(() => $info.textContent)
+        }
+      });
 
-let messages = [];
+      await engine.reload(model);
 
-function addMessage(text, sender) {
-  const clonedTemplate = $template.content.cloneNode(true);
-  const $newMessage = clonedTemplate.querySelector(".message");
+      let messages = [];
+      let isCodeBlock = false;
+      let $currentCodeBlock = null;
 
-  const $who = $newMessage.querySelector("span");
-  const $text = $newMessage.querySelector("p");
+      function createCodeBlock(content) {
+        if (!$currentCodeBlock) {
+          $currentCodeBlock = document.createElement("code");
+          $currentCodeBlock.classList.add("code");
+          const $newMessage = document.createElement("li");
+          $newMessage.classList.add("code-container")
+          $newMessage.appendChild($currentCodeBlock);
+          $messages.appendChild($newMessage);
+        }
+        $currentCodeBlock.textContent += content;
+      }
 
-  $text.textContent = text;
-  $who.textContent = sender === "bot" ? "🧙‍♂️" : "👨‍💻";
-  $newMessage.classList.add(sender);
+      function addMessage(text, sender) {
+        const clonedTemplate = $template.content.cloneNode(true);
+        const $newMessage = clonedTemplate.querySelector(".message");
 
-  $messages.appendChild($newMessage);
+        const $who = $newMessage.querySelector("span");
+        const $text = $newMessage.querySelector("p");
 
-  $container.scrollTop = $container.scrollHeight;
-  return $text;
-}
+        $text.textContent = text;
+        $who.textContent = sender === "bot" ? "🧙‍♂️" : "👨‍💻";
+        $newMessage.classList.add(sender);
 
-function addPre(content) {
-  const pre = document.createElement("pre");
-  pre.classList.add("code");
+        $messages.appendChild($newMessage);
 
-  if (content.startsWith("```")) {
-    addMessage($messages.appendChild(pre), "bot")
-  }
-}
+        $container.scrollTop = $container.scrollHeight;
+        return $text;
+      }
 
-$form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+      $form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-  const messageText = $input.value.trim();
+        const messageText = $input.value.trim();
 
-  if (messageText !== "") {
-    $input.value = "";
-  }
+        if (messageText !== "") {
+          $input.value = "";
+        }
 
-  addMessage(messageText, "user");
+        addMessage(messageText, "user");
 
-  const userMessage = {
-    role: "user",
-    content: messageText,
-  };
+        const userMessage = {
+          role: "user",
+          content: messageText,
+        };
 
-  messages.push(userMessage);
+        messages.push(userMessage);
 
-  const chunks = await engine.chat.completions.create({
-    messages,
-    stream: true,
-  });
+        const chunks = await engine.chat.completions.create({
+          messages,
+          stream: true,
+        });
 
-  let reply = "";
-  $button.setAttribute("disabled", true);
+        let reply = "";
+        $button.setAttribute("disabled", true);
 
-  const $botMessage = addMessage("", "bot");
+        const $botMessage = addMessage("", "bot");
 
-  for await (const chunk of chunks) {
-    const choice = chunk.choices[0];
-    const content = choice?.delta?.content ?? "";
-    reply += content;
-    $botMessage.textContent = reply;
+        for await (const chunk of chunks) {
+          const content = chunk.choices[0]?.delta?.content || "";
 
-    addPre(content)
-  }
+          reply += content;
 
+          if (reply.includes("```")) {
+            const codeContent = content.replace(/```/g, "");
+            createCodeBlock(codeContent);
 
-  $button.removeAttribute("disabled");
+            if (reply.trim().endsWith("```")) {
+              isCodeBlock = false;
+              $currentCodeBlock = null;
+              reply += content
+            } else {
+              isCodeBlock = true;
+            }
+          } else if (isCodeBlock) {
+            createCodeBlock(content);
+          } else {
+            $botMessage.textContent += content;
+          }
+        }
 
-  messages.push({
-    role: "assistant",
-    content: reply,
-  });
+        $button.removeAttribute("disabled");
 
-  $container.scrollTop = $container.scrollHeight;
-});
-   
+        messages.push({
+          role: "assistant",
+          content: reply,
+        });
+
+        $container.scrollTop = $container.scrollHeight;
+      });
     </script>
   </head>
   <style>
@@ -122,9 +143,21 @@ $form.addEventListener("submit", async (e) => {
       place-content: center;
     }
 
+    header {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      width: 99.5%;
+      height: auto;
+      border-top: 1px solid #333;
+      border-right: 1px solid #333;
+      border-left: 1px solid #333;
+    }
+
     h1 {
       text-align: center;
       color: #ddd;
+      margin: 0;
     }
 
     pre {
@@ -135,10 +168,9 @@ $form.addEventListener("submit", async (e) => {
       justify-content: center;
       background: #222;
       border: 1px solid #333;
-      border-radius: 4px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       padding: 8px;
-      margin: 0 auto 16px;
+      margin: 0 auto;
       color: #eee;
       overflow-y: auto;
       scroll-behavior: smooth;
@@ -204,27 +236,30 @@ $form.addEventListener("submit", async (e) => {
       }
     }
 
+    .code-container {
+      background-color: #333;
+      margin: 4px 0;
+      padding: 4px 8px;
+    }
+
     .code {
       width: 100%;
-      padding: 4px;
-      border: 1px solid #999;
-      border-radius: 10px;
-      background-color: #222;
+      padding: 6px;
       color: lightgreen;
       font-size: 10px;
+      text-wrap: balance;
     }
 
     form {
       display: flex;
-      width: 420px;
-      margin: 0 auto;
+      width: 419px;
+      margin: 1px auto;
 
       textarea {
-        border-radius: 6px;
         flex-grow: 1;
+        margin: 0px 1px auto 0;
         border: 0;
         padding: 8px;
-        margin-right: 8px;
         background-color: #222;
         border: 1px solid #333;
         color: #ccc;
@@ -237,9 +272,8 @@ $form.addEventListener("submit", async (e) => {
 
       button {
         background: #999;
-        border: 0;
+        border: 1px solid #333;
         color: #333;
-        border-radius: 6px;
         cursor: pointer;
         padding: 4px;
         transition: background 0.3s ease;
@@ -276,11 +310,19 @@ $form.addEventListener("submit", async (e) => {
       margin: auto;
       width: 400px;
     }
+    
+    .llama {
+      position: absolute;
+      top: -2px;
+      left: 6px;
+      font-size: x-large;
+    }
   </style>
   <body>
     <section>
       <header>
         <h1>Llama AI 3.8b LLM</h1>
+        <span class="llama">🦙</span>
       </header>
       <pre style="text-wrap: pretty">
         <ul>
