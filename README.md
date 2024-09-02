@@ -25,7 +25,7 @@ Qwen (通义千问): Qwen2 0.5B, 1.5B, 7B
 #
 
 > [!Note]
-> Particularmente he elegido el modelo Llama 3.8, que pesa 5.17 GB. Por lo tanto, es necesario esperar a que se descargue completamente este paquete antes de utilizar la aplicación. Asegúrate de tener suficiente espacio en tu dispositivo y una buena conexión a Internet para facilitar esta descarga.
+> Particularmente he elegido el modelo Llama 3.8, que pesa 5.17 GB. Por lo tanto, es necesario esperar a que se descargue completamente este paquete antes de utilizar la aplicación. Asegúrate de tener suficiente espacio en tu dispositivo y una buena conexión a Internet para facilitar esta descarga. (No recomandable para celulares a menos que sean de alta eficiencia +8GB RAM)
 
 #
 

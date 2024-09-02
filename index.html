@@ -41,18 +41,6 @@
       let isCodeBlock = false;
       let $currentCodeBlock = null;
 
-      function createCodeBlock(content) {
-        if (!$currentCodeBlock) {
-          $currentCodeBlock = document.createElement("code");
-          $currentCodeBlock.classList.add("code");
-          const $newMessage = document.createElement("li");
-          $newMessage.classList.add("code-container")
-          $newMessage.appendChild($currentCodeBlock);
-          $messages.appendChild($newMessage);
-        }
-        $currentCodeBlock.textContent += content;
-      }
-
       function addMessage(text, sender) {
         const clonedTemplate = $template.content.cloneNode(true);
         const $newMessage = clonedTemplate.querySelector(".message");
@@ -100,25 +88,8 @@
 
         for await (const chunk of chunks) {
           const content = chunk.choices[0]?.delta?.content || "";
-
           reply += content;
-
-          if (reply.includes("```")) {
-            const codeContent = content.replace(/```/g, "");
-            createCodeBlock(codeContent);
-
-            if (reply.trim().endsWith("```")) {
-              isCodeBlock = false;
-              $currentCodeBlock = null;
-              reply += content
-            } else {
-              isCodeBlock = true;
-            }
-          } else if (isCodeBlock) {
-            createCodeBlock(content);
-          } else {
-            $botMessage.textContent += content;
-          }
+          $botMessage.textContent = reply
         }
 
         $button.removeAttribute("disabled");
@@ -147,7 +118,7 @@
       position: relative;
       margin: 0;
       padding: 0;
-      width: 99.5%;
+      width: 99.6%;
       height: auto;
       border-top: 1px solid #333;
       border-right: 1px solid #333;
@@ -207,8 +178,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        border-top-left-radius: 25px;
-        border-top-right-radius: 25px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
       }
 
       p {
@@ -221,9 +192,9 @@
         span,
         p {
           background: rgba(102, 180, 215, 0.844);
-          border-top-left-radius: 25px;
-          border-bottom-left-radius: 25px;
-          border-bottom-right-radius: 25px;
+          border-top-left-radius: 10px;
+          border-bottom-left-radius: 10px;
+          border-bottom-right-radius: 10px;
         }
       }
 
@@ -232,9 +203,9 @@
         span,
         p {
           background: #e7a061;
-          border-top-right-radius: 25px;
-          border-bottom-left-radius: 25px;
-          border-bottom-right-radius: 25px;
+          border-top-right-radius: 10px;
+          border-bottom-left-radius: 10px;
+          border-bottom-right-radius: 10px;
         }
       }
 
@@ -256,7 +227,7 @@
 
     form {
       display: flex;
-      width: 419px;
+      width: 418px;
       margin: 1px auto;
 
       textarea {
@@ -270,14 +241,15 @@
         resize: none;
 
         &:focus {
-          outline: 2px solid #d97757;
+          outline: 0.5px solid #d97757;
         }
       }
 
       button {
-        background: #999;
+        background: #e7a061;
         border: 1px solid #333;
-        color: #333;
+        color: #111;
+        font-weight: 600;
         cursor: pointer;
         padding: 4px;
         transition: background 0.3s ease;
@@ -286,7 +258,7 @@
           background: #222;
           opacity: 0.6;
           pointer-events: none;
-          cursor: not-allowed;
+          cursor:progress;
         }
 
         &:hover {
@@ -325,7 +297,7 @@
   <body>
     <section>
       <header>
-        <h1>Llama AI 3.8b LLM</h1>
+        <h1>Llama AI 3.8b Web LLM</h1>
         <span class="llama">🦙</span>
       </header>
       <pre style="text-wrap: pretty">
