@@ -71,3 +71,9 @@ También en la consola de desarrollo del navegador pueden ejecutar el siguiente 
 ```javascript
 navigator.gpu.requestAdapter();
 ```
+
+---
+
+<div align="center">
+@solidSnk86 - 2024
+</div>
